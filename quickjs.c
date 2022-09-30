@@ -6732,6 +6732,13 @@ static JSValue JS_ThrowTypeErrorNotASymbol(JSContext *ctx)
     return JS_ThrowTypeError(ctx, "not a symbol");
 }
 
+static JSValue JS_ThrowTypeErrorNotAFunction(JSContext *ctx, JSAtom name)
+{
+    char buf[ATOM_GET_STR_BUF_SIZE];
+    return JS_ThrowTypeError(ctx, "'%s' is not a function",
+                             JS_AtomGetStr(ctx, buf, sizeof(buf), name));
+}
+
 static JSValue JS_ThrowReferenceErrorNotDefined(JSContext *ctx, JSAtom name)
 {
     char buf[ATOM_GET_STR_BUF_SIZE];
@@ -16639,7 +16646,64 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
             has_call_argc:
                 call_argv = sp - call_argc;
                 sf->cur_pc = pc;
-                ret_val = JS_CallInternal(ctx, call_argv[-1], JS_UNDEFINED,
+                JSValue func = call_argv[-1];
+                // When the call is not a function, an exception is thrown and its name.
+                if (!JS_IsFunction(ctx, func)) {
+                    // Currently, only call0 is handled.
+                    if(opcode == OP_call0) {
+                        if(pc[-2] == OP_set_loc0) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[b->arg_count].var_name);
+                            goto exception;
+                        } else if(pc[-2] == OP_set_loc1) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[b->arg_count + 1].var_name);
+                            goto exception;
+                        } else if(pc[-2] == OP_set_loc2) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[b->arg_count + 2].var_name);
+                            goto exception;
+                        } else if(pc[-2] == OP_set_loc3) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[b->arg_count + 3].var_name);
+                            goto exception;
+                        } else if(pc[-3] == OP_set_loc8) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[pc[-2]].var_name);
+                            goto exception;
+                        } else if(pc[-4] == OP_get_arg) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[pc[-3]].var_name);
+                            goto exception;
+                        } else if(pc[-2] == OP_get_arg0) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[0].var_name);
+                            goto exception;
+                        } else if(pc[-2] == OP_get_arg1) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[1].var_name);
+                            goto exception;
+                        } else if(pc[-2] == OP_get_arg2) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[2].var_name);
+                            goto exception;
+                        } else if(pc[-2] == OP_get_arg3) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[3].var_name);
+                            goto exception;
+                        } else if(pc[-6] == OP_get_var){
+                            pc -= 5;
+                            JS_ThrowTypeErrorNotAFunction(ctx, get_u32(pc));
+                            goto exception;
+                        } else if(pc[-4] == OP_get_var_ref) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->closure_var[pc[-3]].var_name);
+                            goto exception;
+                        } else if(pc[-2] == OP_get_var_ref0) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->closure_var[0].var_name);
+                            goto exception;
+                        } else if(pc[-2] == OP_get_var_ref1) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->closure_var[1].var_name);
+                            goto exception;
+                        } else if(pc[-2] == OP_get_var_ref2) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->closure_var[2].var_name);
+                            goto exception;
+                        } else if(pc[-2] == OP_get_var_ref3) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->closure_var[3].var_name);
+                            goto exception;
+                        }
+                    }
+                }
+                ret_val = JS_CallInternal(ctx, func, JS_UNDEFINED,
                                           JS_UNDEFINED, call_argc, call_argv, 0);
                 if (unlikely(JS_IsException(ret_val)))
                     goto exception;
@@ -16675,7 +16739,19 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
                 pc += 2;
                 call_argv = sp - call_argc;
                 sf->cur_pc = pc;
-                ret_val = JS_CallInternal(ctx, call_argv[-1], call_argv[-2],
+                JSValue func = call_argv[-1];
+                // When the call is not a function, an exception is thrown and its name.
+                if(!JS_IsFunction(ctx, func)) {
+                    // Currently, only call_method is handled.
+                    if(opcode == OP_call_method) {
+                        if(pc[-5] == OP_push_const8 && pc[-10] == OP_get_field2) {
+                            pc -= 9;
+                            JS_ThrowTypeErrorNotAFunction(ctx, get_u32(pc));
+                            goto exception;
+                        }
+                    }
+                }
+                ret_val = JS_CallInternal(ctx, func, call_argv[-2],
                                           JS_UNDEFINED, call_argc, call_argv, 0);
                 if (unlikely(JS_IsException(ret_val)))
                     goto exception;
@@ -35959,7 +36035,13 @@ static int check_function(JSContext *ctx, JSValueConst obj)
 {
     if (likely(JS_IsFunction(ctx, obj)))
         return 0;
-    JS_ThrowTypeError(ctx, "not a function");
+    JSAtom atom = JS_ValueToAtom(ctx, obj);
+    if (atom == JS_ATOM_NULL) {
+        JS_ThrowTypeError(ctx, "not a function");
+    } else {
+        JS_ThrowTypeErrorNotAFunction(ctx, atom);
+    }
+    JS_FreeAtom(ctx, atom);
     return -1;
 }
 
