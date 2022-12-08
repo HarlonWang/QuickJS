@@ -16701,6 +16701,12 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
                             JS_ThrowTypeErrorNotAFunction(ctx, b->closure_var[3].var_name);
                             goto exception;
                         }
+                    } else if(opcode == OP_call1) {
+                        if(pc[-3] == OP_fclosure8 && pc[-8] == OP_get_var) {
+                            pc -= 7;
+                            JS_ThrowTypeErrorNotAFunction(ctx, get_u32(pc));
+                            goto exception;
+                        }
                     }
                 }
                 ret_val = JS_CallInternal(ctx, func, JS_UNDEFINED,
