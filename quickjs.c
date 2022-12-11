@@ -48273,7 +48273,7 @@ static JSValue get_date_string(JSContext *ctx, JSValueConst this_val,
             break;
         case 3:
             pos += snprintf(buf + pos, sizeof(buf) - pos,
-                            "%02d/%02d/%0*d", mon + 1, d, 4 + (y < 0), y);
+                            "%0*d/%02d/%02d", 4 + (y < 0), y, mon + 1, d);
             if (part == 3) {
                 buf[pos++] = ',';
                 buf[pos++] = ' ';
