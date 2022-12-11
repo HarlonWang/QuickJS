@@ -48205,7 +48205,7 @@ done:
    0: toUTCString: "Tue, 02 Jan 2018 23:04:46 GMT"
    1: toString: "Wed Jan 03 2018 00:05:22 GMT+0100 (CET)"
    2: toISOString: "2018-01-02T23:02:56.927Z"
-   3: toLocaleString: "1/2/2018, 11:40:40 PM"
+   3: toLocaleString: "2018/1/2, 23:40:40"
    part: 1=date, 2=time 3=all
    XXX: should use a variant of strftime().
  */
