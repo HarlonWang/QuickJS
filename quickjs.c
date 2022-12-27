@@ -16762,6 +16762,10 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
                             pc -= 8;
                             JS_ThrowTypeErrorNotAFunction(ctx, get_u32(pc));
                             goto exception;
+                        } else if(pc[-8] == OP_push_atom_value && pc[-13] == OP_get_field2) {
+                            pc -= 12;
+                            JS_ThrowTypeErrorNotAFunction(ctx, get_u32(pc));
+                            goto exception;
                         }
                     }
                 }
