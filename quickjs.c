@@ -16666,6 +16666,18 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
                         } else if(pc[-3] == OP_set_loc8) {
                             JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[pc[-2]].var_name);
                             goto exception;
+                        } else if(pc[-2] == OP_get_loc0) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[b->arg_count].var_name);
+                            goto exception;
+                        } else if(pc[-2] == OP_get_loc1) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[b->arg_count + 1].var_name);
+                            goto exception;
+                        } else if(pc[-2] == OP_get_loc2) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[b->arg_count + 2].var_name);
+                            goto exception;
+                        } else if(pc[-2] == OP_get_loc3) {
+                            JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[b->arg_count + 3].var_name);
+                            goto exception;
                         } else if(pc[-4] == OP_get_arg) {
                             JS_ThrowTypeErrorNotAFunction(ctx, b->vardefs[pc[-3]].var_name);
                             goto exception;
