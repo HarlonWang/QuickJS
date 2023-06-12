@@ -38455,6 +38455,19 @@ static int JS_isConcatSpreadable(JSContext *ctx, JSValueConst obj)
     return JS_IsArray(ctx, obj);
 }
 
+// Support Array.prototype.at, like: [1, 2].at(0);
+static JSValue js_array_at(JSContext *ctx, JSValueConst this_val,
+                           int argc, JSValueConst *argv) {
+    if(argc > 0 && !JS_IsUndefined(argv[0])) {
+        JSValue el;
+        int64_t i;
+        JS_ToInt64(ctx, &i, argv[0]);
+        return JS_GetPropertyUint32(ctx, this_val, i);
+    }
+
+    return JS_EXCEPTION;
+}
+
 static JSValue js_array_concat(JSContext *ctx, JSValueConst this_val,
                                int argc, JSValueConst *argv)
 {
@@ -39816,6 +39829,7 @@ static const JSCFunctionListEntry js_iterator_proto_funcs[] = {
 };
 
 static const JSCFunctionListEntry js_array_proto_funcs[] = {
+    JS_CFUNC_DEF("at", 1, js_array_at ),
     JS_CFUNC_DEF("concat", 1, js_array_concat ),
     JS_CFUNC_MAGIC_DEF("every", 1, js_array_every, special_every ),
     JS_CFUNC_MAGIC_DEF("some", 1, js_array_every, special_some ),
