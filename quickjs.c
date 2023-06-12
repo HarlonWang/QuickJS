@@ -38460,8 +38460,23 @@ static JSValue js_array_at(JSContext *ctx, JSValueConst this_val,
                            int argc, JSValueConst *argv) {
     if(argc > 0 && !JS_IsUndefined(argv[0])) {
         JSValue el;
-        int64_t i;
+        int64_t len, i;
+        if (js_get_length64(ctx, &len, this_val)) {
+            return JS_EXCEPTION;
+        }
+
         JS_ToInt64(ctx, &i, argv[0]);
+        if (i < 0) {
+            if (i < -len) {
+                return JS_UNDEFINED;
+            }
+
+            i = i + len;
+        } else {
+            if (i >= len) {
+                return JS_UNDEFINED;
+            }
+        }
         return JS_GetPropertyUint32(ctx, this_val, i);
     }
 
