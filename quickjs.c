@@ -96,7 +96,7 @@
 /* dump objects freed by the garbage collector */
 //#define DUMP_GC_FREE
 /* dump objects leaking when freeing the runtime */
-//#define DUMP_LEAKS  1
+#define DUMP_LEAKS  1
 /* dump memory usage before running the garbage collector */
 //#define DUMP_MEM
 //#define DUMP_OBJECTS    /* dump objects in JS_FreeContext */
@@ -54253,7 +54253,7 @@ JSValue JS_GetPromiseState(JSContext *ctx, JSValueConst promise) {
     JSValue ret = JS_NewObject(ctx);
     const char *c_state = "pending";
     if (s->promise_state == JS_PROMISE_FULFILLED || s->promise_state == JS_PROMISE_REJECTED) {
-        JS_DefinePropertyValueStr(ctx, ret, "result", s->promise_result, JS_PROP_C_W_E);
+        JS_DefinePropertyValueStr(ctx, ret, "result", JS_DupValue(ctx, s->promise_result), JS_PROP_C_W_E);
         if (s->promise_state == JS_PROMISE_FULFILLED) {
             c_state = "fulfilled";
         } else {
