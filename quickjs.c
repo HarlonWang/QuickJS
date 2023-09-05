@@ -36394,6 +36394,16 @@ static JSValue js_global_isFinite(JSContext *ctx, JSValueConst this_val,
     return JS_NewBool(ctx, res);
 }
 
+static JSValue js_promise_get_state(JSContext *ctx, JSValueConst this_val,
+                               int argc, JSValueConst *argv) {
+    if (argc == 0) {
+        return JS_NULL;
+    }
+
+    JSValue p = argv[0];
+    return JS_GetPromiseState(ctx, p);
+}
+
 /* Object class */
 
 static JSValue JS_ToObject(JSContext *ctx, JSValueConst val)
@@ -48037,6 +48047,8 @@ static const JSCFunctionListEntry js_global_funcs[] = {
     JS_CFUNC_DEF("parseFloat", 1, js_parseFloat ),
     JS_CFUNC_DEF("isNaN", 1, js_global_isNaN ),
     JS_CFUNC_DEF("isFinite", 1, js_global_isFinite ),
+    /* for print promise in console.log */
+    JS_CFUNC_DEF("getPromiseState", 1, js_promise_get_state),
 
     JS_CFUNC_MAGIC_DEF("decodeURI", 1, js_global_decodeURI, 0 ),
     JS_CFUNC_MAGIC_DEF("decodeURIComponent", 1, js_global_decodeURI, 1 ),
@@ -54234,4 +54246,23 @@ void JS_AddIntrinsicTypedArrays(JSContext *ctx)
 #ifdef CONFIG_ATOMICS
     JS_AddIntrinsicAtomics(ctx);
 #endif
+}
+
+JSValue JS_GetPromiseState(JSContext *ctx, JSValue promise) {
+    JSPromiseData *s = JS_GetOpaque(promise, JS_CLASS_PROMISE);
+    JSValue ret = JS_NewObject(ctx);
+    char* c_state = "pending";
+    if (s->promise_state == JS_PROMISE_FULFILLED || s->promise_state == JS_PROMISE_REJECTED) {
+        JS_DefinePropertyValueStr(ctx, ret, "result", s->promise_result, JS_PROP_C_W_E);
+        if (s->promise_state == JS_PROMISE_FULFILLED) {
+            c_state = "fulfilled";
+        } else {
+            c_state = "rejected";
+        }
+    } else {
+        JS_DefinePropertyValueStr(ctx, ret, "result", JS_NULL, JS_PROP_C_W_E);
+    }
+    JSValue p_state = JS_NewString(ctx, c_state);
+    JS_DefinePropertyValueStr(ctx, ret, "state", p_state, JS_PROP_C_W_E);
+    return ret;
 }
