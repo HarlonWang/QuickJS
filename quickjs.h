@@ -842,7 +842,7 @@ typedef void JSHostPromiseRejectionTracker(JSContext *ctx, JSValueConst promise,
 void JS_SetHostPromiseRejectionTracker(JSRuntime *rt, JSHostPromiseRejectionTracker *cb, void *opaque);
 
 /* for print promise in console.log */
-JSValue JS_GetPromiseState(JSContext *ctx, JSValue promise);
+JSValue JS_GetPromiseState(JSContext *ctx, JSValueConst promise);
 
 /* return != 0 if the JS code needs to be interrupted */
 typedef int JSInterruptHandler(JSRuntime *rt, void *opaque);

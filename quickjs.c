@@ -36400,8 +36400,9 @@ static JSValue js_promise_get_state(JSContext *ctx, JSValueConst this_val,
         return JS_NULL;
     }
 
-    JSValue p = argv[0];
-    return JS_GetPromiseState(ctx, p);
+    JSValueConst promise;
+    promise = argv[0];
+    return JS_GetPromiseState(ctx, promise);
 }
 
 /* Object class */
@@ -38481,7 +38482,6 @@ static int JS_isConcatSpreadable(JSContext *ctx, JSValueConst obj)
 static JSValue js_array_at(JSContext *ctx, JSValueConst this_val,
                            int argc, JSValueConst *argv) {
     if(argc > 0 && !JS_IsUndefined(argv[0])) {
-        JSValue el;
         int64_t len, i;
         if (js_get_length64(ctx, &len, this_val)) {
             return JS_EXCEPTION;
@@ -54248,10 +54248,10 @@ void JS_AddIntrinsicTypedArrays(JSContext *ctx)
 #endif
 }
 
-JSValue JS_GetPromiseState(JSContext *ctx, JSValue promise) {
+JSValue JS_GetPromiseState(JSContext *ctx, JSValueConst promise) {
     JSPromiseData *s = JS_GetOpaque(promise, JS_CLASS_PROMISE);
     JSValue ret = JS_NewObject(ctx);
-    char* c_state = "pending";
+    const char *c_state = "pending";
     if (s->promise_state == JS_PROMISE_FULFILLED || s->promise_state == JS_PROMISE_REJECTED) {
         JS_DefinePropertyValueStr(ctx, ret, "result", s->promise_result, JS_PROP_C_W_E);
         if (s->promise_state == JS_PROMISE_FULFILLED) {
