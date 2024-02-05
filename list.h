@@ -72,12 +72,6 @@ static inline void list_del(struct list_head *el)
     struct list_head *prev, *next;
     prev = el->prev;
     next = el->next;
-    if (prev == NULL || next == NULL) {
-        printf("prev--> %p | el--> %p | next--> %p", prev, el, next);
-        el->prev = NULL; /* fail safe */
-        el->next = NULL; /* fail safe */
-        return;
-    }
     prev->next = next;
     next->prev = prev;
     el->prev = NULL; /* fail safe */
