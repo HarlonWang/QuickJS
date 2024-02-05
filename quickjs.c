@@ -5508,7 +5508,6 @@ void __JS_FreeValueRT(JSRuntime *rt, JSValue v)
             if (rt->gc_phase != JS_GC_PHASE_REMOVE_CYCLES) {
                 struct list_head *el = &p->link;
                 if (el->prev == NULL || el->next == NULL) {
-                    printf("---prev111--> %p | el--> %p | next--> %p", el->prev, el, el->next);
                     el->prev = NULL; /* fail safe */
                     el->next = NULL; /* fail safe */
                 } else {
@@ -5685,7 +5684,6 @@ static void mark_children(JSRuntime *rt, JSGCObjectHeader *gp,
 static void gc_decref_child(JSRuntime *rt, JSGCObjectHeader *p)
 {
     if(p->ref_count <= 0) {
-        printf("<<<0");
         return;
     }
 
