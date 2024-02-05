@@ -5506,10 +5506,17 @@ void __JS_FreeValueRT(JSRuntime *rt, JSValue v)
         {
             JSGCObjectHeader *p = JS_VALUE_GET_PTR(v);
             if (rt->gc_phase != JS_GC_PHASE_REMOVE_CYCLES) {
-                list_del(&p->link);
-                list_add(&p->link, &rt->gc_zero_ref_count_list);
-                if (rt->gc_phase == JS_GC_PHASE_NONE) {
-                    free_zero_refcount(rt);
+                struct list_head *el = &p->link;
+                if (el->prev == NULL || el->next == NULL) {
+                    printf("---prev111--> %p | el--> %p | next--> %p", el->prev, el, el->next);
+                    el->prev = NULL; /* fail safe */
+                    el->next = NULL; /* fail safe */
+                } else {
+                    list_del(el);
+                    list_add(&p->link, &rt->gc_zero_ref_count_list);
+                    if (rt->gc_phase == JS_GC_PHASE_NONE) {
+                        free_zero_refcount(rt);
+                    }
                 }
             }
         }
@@ -5677,6 +5684,11 @@ static void mark_children(JSRuntime *rt, JSGCObjectHeader *gp,
 
 static void gc_decref_child(JSRuntime *rt, JSGCObjectHeader *p)
 {
+    if(p->ref_count <= 0) {
+        printf("<<<0");
+        return;
+    }
+
     assert(p->ref_count > 0);
     p->ref_count--;
     if (p->ref_count == 0 && p->mark == 1) {
