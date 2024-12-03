@@ -5209,6 +5209,9 @@ static force_inline JSShapeProperty *find_own_property(JSProperty **ppr,
     JSShapeProperty *pr, *prop;
     intptr_t h;
     sh = p->shape;
+    if (sh == NULL) {
+        return NULL;
+    }
     h = (uintptr_t)atom & sh->prop_hash_mask;
     h = prop_hash_end(sh)[-h - 1];
     prop = get_shape_prop(sh);
@@ -7987,6 +7990,9 @@ static JSProperty *add_property(JSContext *ctx,
     JSShape *sh, *new_sh;
 
     sh = p->shape;
+    if(sh == NULL) {
+        return NULL;
+    }
     if (sh->is_hashed) {
         /* try to find an existing shape */
         new_sh = find_hashed_shape_prop(ctx->rt, sh, prop, prop_flags);
